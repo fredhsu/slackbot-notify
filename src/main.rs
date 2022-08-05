@@ -1,7 +1,8 @@
 use clap::Parser;
 use reqwest::{Response, Result};
 use serde::{Deserialize, Serialize};
-use std::str;
+use std::fs::File;
+use std::{io::Read, str};
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -20,9 +21,15 @@ struct MessagePayload {
     text: String,
 }
 
+fn read_config(filename: &str) -> String {
+    let mut file = File::open(filename).unwrap();
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).unwrap();
+    contents
+}
+
 async fn post_message(msg: &str) -> Result<Response> {
-    // TODO move slack config into config file
-    let slack_token = "xoxb-2203743897442-3884441126759-85NvxqnhdiewrtKRdtNYbCfE";
+    let slack_token = read_config("tokens/slack.token");
     let webhook_url =
         "https://hooks.slack.com/services/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";
     let channel = "C02E3V00VT6".to_string();
