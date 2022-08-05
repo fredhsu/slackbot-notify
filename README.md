@@ -1,6 +1,8 @@
 # slackbot-notify
 Listens on a given NATS subject and will post whatever messages are posted there to the slack channel configured
 
+To see command options run with `--help` 
+
 Uses a json config file for slackbot information of the form:
 
 ```
