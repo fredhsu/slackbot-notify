@@ -1,8 +1,8 @@
 use clap::Parser;
 use reqwest::{Response, Result};
 use serde::{Deserialize, Serialize};
-use std::fs::File;
-use std::{io::Read, str};
+use std::fs;
+use std::str;
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -15,32 +15,34 @@ struct Cli {
     nats_subject: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 struct MessagePayload {
     channel: String,
     text: String,
 }
 
-fn read_config(filename: &str) -> String {
-    let mut file = File::open(filename).unwrap();
-    let mut contents = String::new();
-    file.read_to_string(&mut contents).unwrap();
-    contents
+#[derive(Deserialize, Debug)]
+struct Config {
+    pub token: String,
+    pub webhook_url: String,
+    pub channel: String,
+}
+
+fn read_json_config(filename: &str) -> Config {
+    let file = fs::read_to_string(filename).expect("Unable to read config file");
+    serde_json::from_str(&file).expect("JSON is bad")
 }
 
 async fn post_message(msg: &str) -> Result<Response> {
-    let slack_token = read_config("tokens/slack.token");
-    let webhook_url =
-        "https://hooks.slack.com/services/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";
-    let channel = "C02E3V00VT6".to_string();
+    let slack_config = read_json_config("tokens/slack.json");
     let message = MessagePayload {
-        channel,
+        channel: slack_config.channel,
         text: msg.to_string(),
     };
     let client = reqwest::Client::new();
     Ok(client
-        .post(webhook_url)
-        .bearer_auth(slack_token)
+        .post(slack_config.webhook_url)
+        .bearer_auth(slack_config.token)
         .json(&message)
         .send()
         .await?)
