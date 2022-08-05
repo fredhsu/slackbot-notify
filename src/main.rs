@@ -13,6 +13,9 @@ struct Cli {
     // NATS subject to listen on
     #[clap(long, default_value_t = String::from("slackbot.notify"))]
     nats_subject: String,
+    // Location of the slack config json file
+    #[clap(long, default_value_t = String::from("tokens/slack.json"))]
+    slack_config_file: String,
 }
 
 #[derive(Serialize)]
